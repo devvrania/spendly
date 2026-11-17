@@ -74,6 +74,35 @@ The test helper refuses to run against any database whose URL doesn't contain
 
 Errors always look like `{ "statusCode": 400, "error": "Bad Request", "message": "Validation failed", "errors": [{ "field": "amount", "messages": ["…"] }] }`.
 
+## Deploying
+
+Web on Vercel, API on any Node host (e.g. Render), database on Neon.
+
+**Why the API is proxied through the web app.** The session is an HttpOnly
+cookie. If the browser called the API on its own domain (e.g.
+`*.onrender.com`), the cookie would be third-party: browsers wouldn't send
+it, and the web app's auth middleware couldn't see it. Instead the browser
+calls `/api/v1/*` on the web app's own domain and Next rewrites it to the API
+host, so the cookie is first-party.
+
+| Where | Variable | Value |
+|---|---|---|
+| Web (Vercel) | `NEXT_PUBLIC_API_URL` | `/api/v1` |
+| Web (Vercel) | `API_PROXY_TARGET` | API base URL, e.g. `https://spendly-api.onrender.com` |
+| API | `NODE_ENV` | `production` (Secure cookie, Swagger off) |
+| API | `DATABASE_URL` / `DIRECT_URL` | Neon **pooled** / **direct** connection strings |
+| API | `JWT_ACCESS_SECRET` | New random value, 32+ chars (`openssl rand -base64 48`) |
+| API | `FRONTEND_URL` | The web app's public URL (used for the CSRF origin check) |
+| API | `TRUST_PROXY` | Proxy hops in front of the API, so rate limiting sees real visitor IPs (Vercel → Render is typically `2`) |
+| API | `SWAGGER_ENABLED` | Optional, `true` to expose `/api/docs` in production |
+
+API build: `pnpm install && pnpm --filter @spendly/api build && pnpm --filter @spendly/api prisma:deploy`;
+start: `node apps/api/dist/main.js`; health check: `GET /api/v1/health`
+(returns 503 if the database is unreachable).
+
+Note: `FRONTEND_URL` is a single origin, so Vercel *preview* deployments
+(different URLs) will get 403 on writes; test on the production URL.
+
 ## Out of scope (by design)
 
 Transfers between wallets, multiple currencies, budgets, recurring transactions, bank sync,

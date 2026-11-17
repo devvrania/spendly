@@ -1,4 +1,5 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -11,6 +12,12 @@ import { buildValidationException } from './common/filters/validation-exception.
  */
 export function configureApp(app: INestApplication) {
   const config = app.get(ConfigService);
+
+  // Behind proxies (e.g. Vercel rewrite -> API host), req.ip would be the proxy's
+  // address, so auth rate limiting would lump every visitor together. TRUST_PROXY
+  // tells Express how many proxy hops to trust when reading X-Forwarded-For.
+  const trustProxy = config.get<number | boolean>('TRUST_PROXY');
+  if (trustProxy) (app as NestExpressApplication).set('trust proxy', trustProxy);
 
   app.setGlobalPrefix('api/v1');
   app.use(helmet());

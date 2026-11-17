@@ -11,7 +11,9 @@ async function bootstrap() {
 
   const config = app.get(ConfigService);
 
-  if (config.get('NODE_ENV') !== 'production') {
+  // Docs are on in development; in production only when SWAGGER_ENABLED=true.
+  const swaggerEnabled = config.get('NODE_ENV') !== 'production' || config.get<boolean>('SWAGGER_ENABLED');
+  if (swaggerEnabled) {
     const doc = new DocumentBuilder()
       .setTitle('Spendly API')
       .setDescription(
@@ -25,7 +27,7 @@ async function bootstrap() {
 
   const port = config.get<number>('PORT') ?? 4000;
   await app.listen(port);
-  console.log(`Spendly API listening on http://localhost:${port}/api/v1 (docs: /api/docs)`);
+  console.log(`Spendly API listening on port ${port} (/api/v1${swaggerEnabled ? ', docs: /api/docs' : ''})`);
 }
 
 void bootstrap();

@@ -18,7 +18,10 @@ export class ApiError extends Error {
 type Query = Record<string, string | number | boolean | undefined | null>;
 
 function buildUrl(path: string, query?: Query) {
-  const url = new URL(`${API_URL}${path}`);
+  // API_URL may be absolute (local: http://localhost:4000/api/v1) or a same-site
+  // path proxied by Next (production: /api/v1), which needs the page origin as base.
+  const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+  const url = new URL(`${API_URL}${path}`, base);
   for (const [k, v] of Object.entries(query ?? {})) {
     if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
   }

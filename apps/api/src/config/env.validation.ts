@@ -11,8 +11,19 @@ export function validateEnv(config: Record<string, unknown>) {
   }
   return {
     ...config,
+    TRUST_PROXY: parseTrustProxy(config.TRUST_PROXY),
+    SWAGGER_ENABLED: config.SWAGGER_ENABLED === 'true',
     NODE_ENV: config.NODE_ENV ?? 'development',
     PORT: Number(config.PORT ?? 4000),
     JWT_ACCESS_EXPIRES_IN: config.JWT_ACCESS_EXPIRES_IN ?? '1d',
   };
+}
+
+/** "" / "false" -> off, "true" -> trust all, "2" -> trust 2 hops. Anything else is a config error. */
+function parseTrustProxy(raw: unknown): number | boolean {
+  if (raw === undefined || raw === '' || raw === 'false' || raw === '0') return false;
+  if (raw === 'true') return true;
+  const hops = Number(raw);
+  if (Number.isInteger(hops) && hops > 0) return hops;
+  throw new Error(`TRUST_PROXY must be "true", "false" or a positive integer, got "${String(raw)}"`);
 }

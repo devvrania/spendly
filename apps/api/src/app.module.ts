@@ -11,6 +11,7 @@ import { WalletsModule } from './wallets/wallets.module';
 import { CategoriesModule } from './categories/categories.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { HealthModule } from './health/health.module';
 import { OriginCheckMiddleware } from './common/middleware/origin-check.middleware';
 
 @Module({
@@ -32,6 +33,7 @@ import { OriginCheckMiddleware } from './common/middleware/origin-check.middlewa
     CategoriesModule,
     TransactionsModule,
     AnalyticsModule,
+    HealthModule,
   ],
   providers: [
     // Secure by default: every route requires a session unless marked @Public().
