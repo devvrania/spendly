@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    // Keep the incremental cache inside dist/. Nest deletes dist/ on start;
+    // a cache left outside it makes tsc think nothing changed and emit nothing.
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "test", "dist", "prisma", "**/*spec.ts"]
+}

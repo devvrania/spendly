@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --color-brand-50: #eefbf6;
+  --color-brand-100: #d5f5e8;
+  --color-brand-200: #aeead4;
+  --color-brand-500: #14a37f;
+  --color-brand-600: #0b8467;
+  --color-brand-700: #0a6a54;
+  --color-brand-900: #083f33;
+
+  --color-income: #0b8467;
+  --color-income-soft: #e3f6ef;
+  --color-expense: #d4405b;
+  --color-expense-soft: #fdebee;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-stone-50 text-stone-900;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

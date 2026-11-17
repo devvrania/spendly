@@ -1,0 +1,18 @@
+{
+  "name": "spendly",
+  "private": true,
+  "packageManager": "pnpm@10.34.9",
+  "engines": { "node": ">=20.9" },
+  "scripts": {
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @spendly/api prisma:migrate",
+    "db:seed:demo": "pnpm --filter @spendly/api seed:demo",
+    "dev": "pnpm --parallel --filter @spendly/api --filter @spendly/web dev",
+    "dev:api": "pnpm --filter @spendly/api dev",
+    "dev:web": "pnpm --filter @spendly/web dev",
+    "build": "pnpm -r build",
+    "test": "pnpm --filter @spendly/api test:e2e",
+    "lint": "pnpm -r lint"
+  }
+}

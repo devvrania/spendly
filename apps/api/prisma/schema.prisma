@@ -1,0 +1,116 @@
+// Spendly database schema.
+//
+// Design notes (see docs/database-design.md for the full rationale):
+// - Every user-owned row carries user_id so every query can be scoped by owner.
+// - Wallet and Category expose a composite unique key (user_id, id) so that
+//   Transaction can reference them with COMPOSITE foreign keys. This makes it
+//   impossible at the database level for a transaction to point at another
+//   user's wallet or category.
+// - Category also exposes (user_id, id, type), and Transaction references it
+//   with (user_id, category_id, type). The database therefore guarantees that
+//   a transaction's type always matches its category's type.
+// - Wallet balances are never stored; they are derived from transactions.
+// - Some constraints Prisma cannot express (CHECK constraints, expression
+//   indexes on lower(name)) are added by hand in the migration SQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+
+  @@map("transaction_type")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(100)
+  /// Always stored trimmed + lower-cased (enforced by a CHECK constraint).
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  wallets      Wallet[]
+  categories   Category[]
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+model Wallet {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  name       String   @db.VarChar(80)
+  currency   String   @default("PKR") @db.Char(3)
+  isArchived Boolean  @default(false) @map("is_archived")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  // Target of the composite FK from transactions (ownership guarantee).
+  @@unique([userId, id], map: "wallets_user_id_id_key")
+  // Supports "list my active wallets".
+  @@index([userId, isArchived], map: "wallets_user_id_is_archived_idx")
+  @@map("wallets")
+}
+
+model Category {
+  id         String          @id @default(uuid()) @db.Uuid
+  userId     String          @map("user_id") @db.Uuid
+  name       String          @db.VarChar(80)
+  type       TransactionType
+  color      String?         @db.VarChar(20)
+  isArchived Boolean         @default(false) @map("is_archived")
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  // Target of the composite FK from transactions: guarantees same owner AND same type.
+  @@unique([userId, id, type], map: "categories_user_id_id_type_key")
+  // Supports "list my categories of type X (active only)".
+  @@index([userId, type, isArchived], map: "categories_user_id_type_is_archived_idx")
+  @@map("categories")
+}
+
+model Transaction {
+  id              String          @id @default(uuid()) @db.Uuid
+  userId          String          @map("user_id") @db.Uuid
+  walletId        String          @map("wallet_id") @db.Uuid
+  categoryId      String          @map("category_id") @db.Uuid
+  amount          Decimal         @db.Decimal(12, 2)
+  type            TransactionType
+  description     String?         @db.Text
+  transactionDate DateTime        @map("transaction_date") @db.Date
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // NoAction (checked at end of statement) blocks hard-deleting a wallet or
+  // category that still has transactions, while still allowing a user
+  // deletion to cascade through all of their rows.
+  wallet   Wallet   @relation(fields: [userId, walletId], references: [userId, id], onDelete: NoAction, onUpdate: NoAction, map: "transactions_wallet_owner_fkey")
+  category Category @relation(fields: [userId, categoryId, type], references: [userId, id, type], onDelete: NoAction, onUpdate: NoAction, map: "transactions_category_owner_type_fkey")
+
+  // Default list + date-range analytics for a user.
+  @@index([userId, transactionDate], map: "transactions_user_id_transaction_date_idx")
+  // Income/expense totals and monthly trend for a period.
+  @@index([userId, type, transactionDate], map: "transactions_user_id_type_transaction_date_idx")
+  // Wallet filter on the list + per-wallet balance.
+  @@index([userId, walletId, transactionDate], map: "transactions_user_id_wallet_id_transaction_date_idx")
+  // Category filter on the list + "is this category in use?" checks.
+  @@index([userId, categoryId, transactionDate], map: "transactions_user_id_category_id_transaction_date_idx")
+  @@map("transactions")
+}
