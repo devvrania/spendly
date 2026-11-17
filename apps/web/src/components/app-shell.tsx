@@ -62,7 +62,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-stone-900">{user?.name}</p>
-              <p className="truncate text-xs text-stone-500">{user?.email}</p>
+              <p className="truncate text-xs text-stone-500">{user?.isDemo ? 'Demo account' : user?.email}</p>
             </div>
             <button
               onClick={logout}
@@ -92,6 +92,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       <main id="main" className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-10">
+        {user?.isDemo && (
+          <div className="mb-6 flex flex-col gap-2 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900 sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              <span className="font-semibold">You’re exploring a demo account.</span> Changes are private to you and reset after 24 hours.
+            </p>
+            <Link href="/register" className="shrink-0 font-medium text-brand-700 underline-offset-2 hover:underline">
+              Create your own account →
+            </Link>
+          </div>
+        )}
         {children}
       </main>
 

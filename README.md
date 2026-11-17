@@ -65,12 +65,14 @@ The test helper refuses to run against any database whose URL doesn't contain
 
 | Area | Endpoints |
 |---|---|
-| Auth | `POST /auth/register` · `POST /auth/login` · `POST /auth/logout` · `GET /auth/me` |
+| Auth | `POST /auth/register` · `POST /auth/login` · `POST /auth/logout` · `GET /auth/me` · `POST /auth/demo` |
 | Profile | `GET /users/me` · `PATCH /users/me` |
 | Wallets | `GET/POST /wallets` · `GET/PATCH /wallets/:id` · `PATCH /wallets/:id/archive` · `…/unarchive` · `DELETE /wallets/:id` (unused only) |
 | Categories | `GET/POST /categories?type=` · `PATCH /categories/:id` · `…/archive` · `…/unarchive` · `DELETE` (unused only) |
 | Transactions | `GET /transactions?page&limit&sortBy&sortOrder&type&categoryId&walletId&startDate&endDate&search` · `POST` · `GET/PATCH/DELETE /transactions/:id` |
 | Analytics | `GET /analytics/summary` · `/category-breakdown` · `/monthly-trend` · `/wallet-balances` |
+
+**Try the demo** (`POST /auth/demo`) creates a private account for the visitor, pre-filled with ~12 months of sample data, and signs them in. Every visitor gets their own copy, so nobody sees or breaks anyone else's demo. Demo accounts have no usable password, use the reserved `@demo.spendly.invalid` domain, and are deleted (with all their rows) 24 hours after creation, checked each time a new demo starts. Rate limited to 5 per minute per IP.
 
 Errors always look like `{ "statusCode": 400, "error": "Bad Request", "message": "Validation failed", "errors": [{ "field": "amount", "messages": ["…"] }] }`.
 

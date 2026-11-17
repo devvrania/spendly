@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { api, ApiError, errorMessage } from '@/lib/api';
 import { keys } from '@/lib/queries';
 import type { User } from '@/lib/types';
+import { DemoButton } from './demo-button';
 
 const loginSchema = z.object({
   email: z.string().trim().min(1, 'Email is required').email('Enter a valid email'),
@@ -86,6 +87,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
           {isRegister ? 'Create account' : 'Log in'}
         </Button>
       </form>
+
+      <div className="my-5 flex items-center gap-3 text-xs text-stone-400" aria-hidden>
+        <span className="h-px flex-1 bg-stone-200" /> or <span className="h-px flex-1 bg-stone-200" />
+      </div>
+      <DemoButton className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-800 shadow-xs hover:bg-stone-50">
+        Explore a demo account
+      </DemoButton>
 
       <p className="mt-6 text-center text-sm text-stone-500">
         {isRegister ? 'Already have an account? ' : 'New to Spendly? '}

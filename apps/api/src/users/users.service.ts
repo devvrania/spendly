@@ -2,10 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { isDemoEmail } from '../demo/demo-data';
 
 /** Never expose passwordHash: every user response goes through this. */
 export function toPublicUser(user: User) {
-  return { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt };
+  return { id: user.id, name: user.name, email: user.email, isDemo: isDemoEmail(user.email), createdAt: user.createdAt };
 }
 
 @Injectable()

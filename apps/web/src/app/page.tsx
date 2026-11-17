@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowRight, BarChart3, ShieldCheck, Tags, Wallet } from 'lucide-react';
 import { Logo } from '@/components/logo';
+import { DemoButton } from '@/features/auth/demo-button';
 
 export const metadata: Metadata = {
   title: 'Spendly — calm personal finance tracking',
@@ -78,13 +79,10 @@ export default function Home() {
                 >
                   Get started free <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
-                <Link
-                  href="/login"
-                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-stone-200 bg-white px-5 sm:w-auto text-sm font-medium text-stone-800 shadow-xs hover:bg-stone-50"
-                >
-                  I already have an account
-                </Link>
+                {/* "Log in" stays in the header; the second hero action lets visitors look around first. */}
+                <DemoButton className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-5 sm:w-auto text-sm font-medium text-stone-800 shadow-xs hover:bg-stone-50" />
               </div>
+              <p className="mt-3 text-xs text-stone-500">No sign-up needed. The demo is filled with sample data and resets after 24 hours.</p>
             </div>
 
             <PreviewCard />

@@ -13,6 +13,8 @@ import { RegisterDto } from './dto/register.dto';
 import { durationToMs } from './duration';
 
 const AUTH_RATE_LIMIT = { default: { limit: 10, ttl: 60_000 } };
+// Each demo writes ~300 rows, so it gets a tighter per-IP limit.
+const DEMO_RATE_LIMIT = { default: { limit: 5, ttl: 60_000 } };
 
 @ApiTags('auth')
 @Controller('auth')
@@ -48,6 +50,16 @@ export class AuthController {
   @HttpCode(200)
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const { user, token } = await this.auth.login(dto);
+    res.cookie(SESSION_COOKIE, token, this.cookieOptions);
+    return user;
+  }
+
+  /** "Try the demo": a fresh private account with sample data, deleted after 24 hours. */
+  @Public()
+  @Throttle(DEMO_RATE_LIMIT)
+  @Post('demo')
+  async demo(@Res({ passthrough: true }) res: Response) {
+    const { user, token } = await this.auth.startDemo();
     res.cookie(SESSION_COOKIE, token, this.cookieOptions);
     return user;
   }

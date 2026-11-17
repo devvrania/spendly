@@ -45,7 +45,7 @@ export default function SettingsPage() {
               <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} autoComplete="name" />
             </Field>
             <Field label="Email" hint="Email changes aren't supported yet.">
-              <Input value={me?.email ?? ''} readOnly disabled />
+              <Input value={me?.isDemo ? 'Demo account (no email)' : (me?.email ?? '')} readOnly disabled />
             </Field>
             <div className="flex justify-end">
               <Button type="submit" loading={update.isPending} disabled={name.trim() === me?.name}>

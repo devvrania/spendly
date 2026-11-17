@@ -4,6 +4,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  /** A short-lived "Try the demo" account (deleted after 24 hours). */
+  isDemo: boolean;
   createdAt: string;
 }
 

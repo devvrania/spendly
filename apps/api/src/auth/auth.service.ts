@@ -4,6 +4,7 @@ import * as argon2 from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 import { isUniqueViolation } from '../common/utils/prisma-errors';
 import { toPublicUser } from '../users/users.service';
+import { DemoService } from '../demo/demo.service';
 import { DEFAULT_CATEGORIES, DEFAULT_WALLET_NAME } from './defaults';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -20,6 +21,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
+    private readonly demo: DemoService,
   ) {}
 
   /**
@@ -52,6 +54,12 @@ export class AuthService {
       ? await argon2.verify(user.passwordHash, dto.password)
       : (await argon2.verify(await this.dummyHash, dto.password), false);
     if (!user || !valid) throw new UnauthorizedException('Invalid email or password');
+    return { user: toPublicUser(user), token: await this.sign(user.id) };
+  }
+
+  /** Creates a private, pre-filled demo account and signs the visitor into it. */
+  async startDemo() {
+    const user = await this.demo.createDemoUser();
     return { user: toPublicUser(user), token: await this.sign(user.id) };
   }
 
